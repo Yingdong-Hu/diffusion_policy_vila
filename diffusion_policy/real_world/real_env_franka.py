@@ -5,7 +5,8 @@ import time
 import shutil
 import math
 from multiprocessing.managers import SharedMemoryManager
-from diffusion_policy.real_world.rtde_interpolation_controller import RTDEInterpolationController
+# from diffusion_policy.real_world.rtde_interpolation_controller import RTDEInterpolationController
+from diffusion_policy.real_world.franka_interpolation_controller import FrankaInterpolationController
 from diffusion_policy.real_world.multi_realsense import MultiRealsense, SingleRealsense
 from diffusion_policy.real_world.video_recorder import VideoRecorder
 from diffusion_policy.common.timestamp_accumulator import (
@@ -21,7 +22,6 @@ from diffusion_policy.common.cv2_util import (
 DEFAULT_OBS_KEY_MAP = {
     # robot
     'ActualTCPPose': 'robot_eef_pose',
-    'ActualTCPSpeed': 'robot_eef_pose_vel',
     'ActualQ': 'robot_joint',
     'ActualQd': 'robot_joint_vel',
     # timestamps
@@ -29,7 +29,7 @@ DEFAULT_OBS_KEY_MAP = {
     'timestamp': 'timestamp'
 }
 
-class RealEnv:
+class RealEnvFranka:
     def __init__(self,
             # required params
             output_dir,
@@ -43,6 +43,9 @@ class RealEnv:
             camera_serial_numbers=None,
             obs_key_map=DEFAULT_OBS_KEY_MAP,
             obs_float32=False,
+            # this latency compensates receive_timestamp
+            # all in seconds
+            robot_obs_latency=0.0001,
             # action
             max_pos_speed=0.25,
             max_rot_speed=0.6,
@@ -151,32 +154,26 @@ class RealEnv:
                 rgb_to_bgr=False
             )
 
-        cube_diag = np.linalg.norm([1, 1, 1])
-        j_init = np.array([0, -90, -90, -90, 90, 0]) / 180 * np.pi
+        # cube_diag = np.linalg.norm([1, 1, 1])
+        j_init = np.array([-0.165, -0.059, 0.167, -1.693, 0.002, 1.642, 0.751])
         if not init_joints:
             j_init = None
 
-        robot = RTDEInterpolationController(
+        robot = FrankaInterpolationController(
             shm_manager=shm_manager,
             robot_ip=robot_ip,
-            frequency=125,  # UR5 CB3 RTDE
-            lookahead_time=0.1,
-            gain=300,
-            max_pos_speed=max_pos_speed*cube_diag,
-            max_rot_speed=max_rot_speed*cube_diag,
-            launch_timeout=3,
-            tcp_offset_pose=[0, 0, tcp_offset,0,0,0],
-            payload_mass=None,
-            payload_cog=None,
+            frequency=200,
+            Kx_scale=1.0,
+            Kxd_scale=np.array([2.0, 1.5, 2.0, 1.0, 1.0, 1.0]),
             joints_init=j_init,
-            joints_init_speed=1.05,
-            soft_real_time=False,
+            joints_init_duration=3.0,
             verbose=False,
-            receive_keys=None,
-            get_max_k=max_obs_buffer_size
-            )
+            receive_latency=robot_obs_latency
+        )
+
         self.realsense = realsense
         self.robot = robot
+        # self.gripper = gripper
         self.multi_cam_vis = multi_cam_vis
         self.video_capture_fps = video_capture_fps
         self.frequency = frequency

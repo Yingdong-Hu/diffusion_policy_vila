@@ -142,7 +142,7 @@ class SharedMemoryRingBuffer:
                 hz = past_iters / deltat
                 raise TimeoutError(
                     'Put executed too fast {}items/{:.4f}s ~= {}Hz'.format(
-                        past_iters, deltat,hz))
+                        past_iters, deltat, hz))
 
         # write to shared memory
         for key, value in data.items():

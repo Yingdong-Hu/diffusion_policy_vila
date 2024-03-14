@@ -13,7 +13,7 @@ from diffusion_policy.real_world.multi_realsense import MultiRealsense
 from diffusion_policy.real_world.video_recorder import VideoRecorder
 
 def test():
-    config = json.load(open('/home/cchi/dev/diffusion_policy/diffusion_policy/real_world/realsense_config/415_high_accuracy_mode.json', 'r'))
+    # config = json.load(open('/home/cchi/dev/diffusion_policy/diffusion_policy/real_world/realsense_config/415_high_accuracy_mode.json', 'r'))
 
     def transform(data):
         color = data['color']
@@ -41,7 +41,7 @@ def test():
     )
 
     with MultiRealsense(
-            resolution=(1280,720),
+            resolution=(1280, 720),
             capture_fps=30,
             record_fps=15,
             enable_color=True,
@@ -55,7 +55,7 @@ def test():
         intr = realsense.get_intrinsics()
         print(intr)
 
-        video_path = 'data_local/test'
+        video_path = '/home/isrlab/codebase/diffusion_policy/data_local/test.mp4'
         rec_start_time = time.time() + 1
         realsense.start_recording(video_path, start_time=rec_start_time)
         realsense.restart_put(rec_start_time)

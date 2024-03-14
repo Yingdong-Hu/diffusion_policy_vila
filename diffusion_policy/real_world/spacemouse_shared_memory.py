@@ -5,17 +5,17 @@ from spnav import spnav_open, spnav_poll_event, spnav_close, SpnavMotionEvent, S
 from diffusion_policy.shared_memory.shared_memory_ring_buffer import SharedMemoryRingBuffer
 
 class Spacemouse(mp.Process):
-    def __init__(self, 
-            shm_manager, 
-            get_max_k=30, 
-            frequency=200,
-            max_value=500, 
-            deadzone=(0,0,0,0,0,0), 
-            dtype=np.float32,
-            n_buttons=2,
-            ):
+    def __init__(self,
+                 shm_manager,
+                 get_max_k=30,
+                 frequency=200,
+                 max_value=500,
+                 deadzone=(0, 0, 0, 0, 0, 0),
+                 dtype=np.float32,
+                 n_buttons=2,
+                 ):
         """
-        Continuously listen to 3D connection space naviagtor events
+        Continuously listen to 3D connection space navigator events
         and update the latest state.
 
         max_value: {300, 500} 300 for wired version and 500 for wireless
